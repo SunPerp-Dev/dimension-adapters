@@ -51,33 +51,25 @@ const fetchV2Volume = async (retry = 0) => {
     return fetchV2Volume(retry + 1);
   }
   const dailyVolume = (res.data || []).reduce((p, c) => p + +c.qutoVol, 0);
-  const openInterestAtEnd = (res.data || []).reduce(
-    (p, c) => p + +c.openInterest,
-    0
-  );
 
-  return { dailyVolume, openInterestAtEnd };
+  return { dailyVolume, };
 };
 
 const fetchV1Volume = async () => {
   const data = (await httpGet(v1VolumeAPI)) as { data: V1TickerItem[] };
   const dailyVolume = data.data.reduce((p, c) => p + +c.quoteVolume, 0);
-  const dailyOpenInterest = data.data.reduce((p, c) => p + +c.openInterest, 0);
 
-  return { dailyVolume, dailyOpenInterest };
+  return { dailyVolume };
 };
 
 const fetch = async () => {
   const v1DailyVolume = await fetchV1Volume();
-  const v1DailyOpenInterest = v1DailyVolume.dailyOpenInterest;
 
   const v2DailyVolume = await fetchV2Volume();
 
   const dailyVolume = v2DailyVolume.dailyVolume + v1DailyVolume.dailyVolume;
-  const dailyOpenInterest =
-    v2DailyVolume.openInterestAtEnd + v1DailyOpenInterest;
 
-  return { dailyVolume, openInterestAtEnd: dailyOpenInterest };
+  return { dailyVolume,  };
 };
 
 export default {

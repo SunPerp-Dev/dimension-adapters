@@ -95,12 +95,25 @@ export default async function runAdapter(options: AdapterRunOptions) {
 
   if (!adapterRunResponseCache[runKey]) adapterRunResponseCache[runKey] = _runAdapter(options)
   else sdk.log(`[Dimensions run] Using cached results for ${runKey}`)
-  return adapterRunResponseCache[runKey]
+  return adapterRunResponseCache[runKey].then((res: any) => clone(res))  // clone the object to avoid accidental mutation of the cached object
+
+  function clone(obj: any) {
+    return JSON.parse(JSON.stringify(obj))
+  }
 }
 
 function getRunKey(options: AdapterRunOptions) {
   let randomUID = options.module._randomUID ?? genUID(10)
   return `${randomUID}-${options.endTimestamp}-${options.withMetadata}`
+}
+
+const startOfDayIdCache: { [key: string]: string } = {}
+
+function getStartOfDayId(timestamp: number): string {
+  if (!startOfDayIdCache[timestamp]) {
+    startOfDayIdCache[timestamp] =  '' + Math.floor(timestamp / 86400)
+  }
+  return startOfDayIdCache[timestamp]
 }
 
 
@@ -343,6 +356,7 @@ async function _runAdapter({
       getEndBlock,
       dateString: getDateString(startOfDay),
       moduleUID,
+      startOfDayId: getStartOfDayId(startOfDay),
     }
   }
 
